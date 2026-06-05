@@ -1,0 +1,37 @@
+# Default configuration — mirrors Anthropic's Scaling Monosemanticity setup
+# adapted for open models (GPT-2). See README for Claude 3 Sonnet notes.
+
+model:
+  name: gpt2
+  hook_layer: null  # null = middle layer (paper Section 1.2)
+
+activations:
+  dataset: Skylion007/openwebtext
+  max_tokens: 500000
+  batch_size: 8
+  seq_len: 128
+  output: data/activations.pt
+
+sae:
+  # Paper trained 1M / 4M / 34M features on Claude 3 Sonnet.
+  # These sizes are practical defaults for GPT-2 on consumer hardware.
+  presets:
+    small: 4096      # ~1M scaled down
+    medium: 16384    # ~4M scaled down
+    large: 65536     # ~34M scaled down
+  n_features: 16384
+  l1_coefficient: 5.0
+  learning_rate: 0.0003
+  batch_size: 4096
+  n_steps: 10000
+
+scaling_laws:
+  feature_counts: [4096, 16384, 65536]
+  step_counts: [1000, 2500, 5000]
+  learning_rates: [0.0001, 0.0003, 0.001]
+
+training:
+  device: auto
+  seed: 42
+  log_every: 100
+  save_every: 1000

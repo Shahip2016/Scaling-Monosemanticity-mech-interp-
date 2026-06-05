@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Data & checkpoints
+data/
+checkpoints/
+results/
+*.pt
+*.pth
+*.ckpt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+wandb/
+*.log
+
+# Test artifacts
+tests/_test_sae.pt
