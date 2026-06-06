@@ -11,6 +11,35 @@ This repository implements the full sparse autoencoder (SAE) pipeline described 
 
 ---
 
+## 🖥️ Web Dashboard
+
+This repository includes an **interactive web dashboard** for exploring SAE features, scaling laws, and causal steering — all in the browser.
+
+### Launch
+
+```bash
+pip install flask>=3.0
+python app.py
+# Open http://localhost:5000
+```
+
+The dashboard works **out of the box** with built-in demo data. To use your own trained SAE:
+
+```bash
+python app.py --sae checkpoints/sae/sae_final.pt --model gpt2
+```
+
+### Dashboard Features
+
+| Section | Description |
+|---------|-------------|
+| **Architecture** | Animated pipeline diagram with the SAE loss equation |
+| **Feature Explorer** | Browse features, view top-activating examples with highlighted tokens |
+| **Scaling Laws** | Interactive Chart.js plots — loss, variance explained, and L0 vs compute |
+| **Steering Playground** | Configure prompt, feature, and coefficient — see baseline vs steered output |
+| **Training Monitor** | Loss curves, variance explained, dead feature gauge |
+| **Paper Reference** | Paper ↔ code mapping table, key metrics, citation |
+
 ## What This Paper Shows
 
 The superposition hypothesis predicts that neural networks encode far more concepts than they have neurons by representing features as **nearly-orthogonal directions** in activation space. Sparse autoencoders perform **dictionary learning** on these activations to recover monosemantic features.
@@ -153,6 +182,12 @@ Outputs:
 ## Project Structure
 
 ```
+├── app.py                     # Flask dashboard server
+├── frontend/
+│   ├── index.html             # Single-page dashboard
+│   ├── styles.css             # Design system (dark theme)
+│   ├── app.js                 # Interactive logic
+│   └── demo_data.js           # Demo data for offline use
 ├── src/scaling_monosemanticity/
 │   ├── sae.py                 # SAE architecture & loss (Section 1.1)
 │   ├── activation_buffer.py   # Residual stream collection & normalization

@@ -34,3 +34,6 @@ wandb/
 
 # Test artifacts
 tests/_test_sae.pt
+
+# Node (precautionary)
+node_modules/

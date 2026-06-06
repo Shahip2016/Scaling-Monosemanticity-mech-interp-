@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scaling Monosemanticity — Interactive Dashboard</title>
+  <meta name="description" content="Interactive dashboard for exploring sparse autoencoder features, scaling laws, and causal steering from the Scaling Monosemanticity paper by Anthropic." />
+  <meta name="theme-color" content="#0a0e27" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+  <!-- App -->
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+
+  <!-- ====== Navigation ====== -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#hero" class="nav__logo">
+        <div class="nav__logo-icon">🧠</div>
+        <span>SAE Explorer</span>
+      </a>
+      <ul class="nav__links" id="nav-links">
+        <li><a class="nav__link active" data-section="hero" href="#hero">Home</a></li>
+        <li><a class="nav__link" data-section="architecture" href="#architecture">Architecture</a></li>
+        <li><a class="nav__link" data-section="features" href="#features">Features</a></li>
+        <li><a class="nav__link" data-section="scaling" href="#scaling">Scaling Laws</a></li>
+        <li><a class="nav__link" data-section="steering" href="#steering">Steering</a></li>
+        <li><a class="nav__link" data-section="training" href="#training">Training</a></li>
+        <li><a class="nav__link" data-section="paper" href="#paper">Paper</a></li>
+      </ul>
+      <button class="nav__hamburger" id="nav-hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ====== Hero Section ====== -->
+  <section class="hero" id="hero">
+    <div class="hero__bg"></div>
+    <div class="hero__particles"></div>
+    <div class="hero__content">
+      <div class="hero__badge">
+        <span class="hero__badge-dot"></span>
+        Mechanistic Interpretability
+      </div>
+      <h1 class="hero__title">Scaling Monosemanticity</h1>
+      <p class="hero__subtitle">
+        Extracting interpretable features from neural networks using sparse autoencoders.
+        Explore features, scaling laws, and causal steering — all in the browser.
+      </p>
+      <div class="hero__actions">
+        <a href="#features" class="btn btn--primary">Explore Features →</a>
+        <a href="#architecture" class="btn btn--secondary">View Architecture</a>
+      </div>
+
+      <div class="findings-grid">
+        <div class="card finding-card reveal reveal-delay-1">
+          <div class="finding-card__icon">📊</div>
+          <div class="finding-card__title">Scalable</div>
+          <div class="finding-card__desc">SAEs extract features from production-scale models</div>
+        </div>
+        <div class="card finding-card reveal reveal-delay-2">
+          <div class="finding-card__icon">📈</div>
+          <div class="finding-card__title">Power Laws</div>
+          <div class="finding-card__desc">Loss decreases as a power law with compute</div>
+        </div>
+        <div class="card finding-card reveal reveal-delay-3">
+          <div class="finding-card__icon">🌐</div>
+          <div class="finding-card__title">Abstract</div>
+          <div class="finding-card__desc">Features are multilingual and multimodal</div>
+        </div>
+        <div class="card finding-card reveal reveal-delay-4">
+          <div class="finding-card__icon">🎯</div>
+          <div class="finding-card__title">Causal</div>
+          <div class="finding-card__desc">Steering features changes model behavior</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Architecture Section ====== -->
+  <section id="architecture">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-header__label">⚙️ System Design</div>
+        <h2 class="section-header__title">Architecture</h2>
+        <p class="section-header__desc">
+          The SAE pipeline: collect residual stream activations, train a sparse autoencoder,
+          analyze features, and steer model behavior.
+        </p>
+      </div>
+
+      <div class="architecture__diagram reveal">
+        <div class="arch-pipeline">
+          <div class="arch-node card--glow-primary">
+            <div class="arch-node__icon">🤖</div>
+            <div class="arch-node__label">Transformer</div>
+            <div class="arch-node__sub">GPT-2 / Pythia</div>
+          </div>
+          <div class="arch-arrow"><div class="arch-arrow__line"></div></div>
+          <div class="arch-node card--glow-primary">
+            <div class="arch-node__icon">📦</div>
+            <div class="arch-node__label">Activation Buffer</div>
+            <div class="arch-node__sub">Residual Stream</div>
+          </div>
+          <div class="arch-arrow"><div class="arch-arrow__line"></div></div>
+          <div class="arch-node card--glow-primary">
+            <div class="arch-node__icon">🔬</div>
+            <div class="arch-node__label">Sparse Autoencoder</div>
+            <div class="arch-node__sub">ReLU Encoder</div>
+          </div>
+          <div class="arch-arrow"><div class="arch-arrow__line"></div></div>
+          <div class="arch-node card--glow-primary">
+            <div class="arch-node__icon">✨</div>
+            <div class="arch-node__label">Feature Activations</div>
+            <div class="arch-node__sub">Monosemantic</div>
+          </div>
+        </div>
+
+        <div class="arch-branches reveal">
+          <div class="arch-branch">
+            <div class="arch-branch__icon">📈</div>
+            <div>
+              <div class="arch-branch__text">Scaling Laws</div>
+              <span class="arch-branch__sub">Power-law fits (§1.3)</span>
+            </div>
+          </div>
+          <div class="arch-branch">
+            <div class="arch-branch__icon">🔍</div>
+            <div>
+              <div class="arch-branch__text">Feature Analysis</div>
+              <span class="arch-branch__sub">Interpretability tools (§2)</span>
+            </div>
+          </div>
+          <div class="arch-branch">
+            <div class="arch-branch__icon">🎛️</div>
+            <div>
+              <div class="arch-branch__text">Steering Hooks</div>
+              <span class="arch-branch__sub">Causal interventions (§2.1)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="equation-box reveal">
+        <div class="equation-box__label">SAE Loss Function (Section 1.1)</div>
+        <div class="equation-box__content">
+          L = ‖x − x̂‖² + λ · Σᵢ fᵢ(x) · ‖W<sub>dec</sub>[:,i]‖₂
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Feature Explorer ====== -->
+  <section id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-header__label">🔍 Explore</div>
+        <h2 class="section-header__title">Feature Explorer</h2>
+        <p class="section-header__desc">
+          Browse individual SAE features — see top-activating examples, activation statistics,
+          and what concepts each feature captures.
+        </p>
+      </div>
+
+      <div class="card reveal" style="margin-bottom: 2rem;">
+        <div class="feature-explorer__controls">
+          <div class="input-group">
+            <label class="input-group__label" for="feature-index-input">Feature Index</label>
+            <input class="input-group__field" type="number" id="feature-index-input"
+                   placeholder="e.g. 42, 137, 256" min="0" value="42" />
+          </div>
+          <div class="input-group" style="flex: 0 0 auto; align-self: flex-end;">
+            <button class="btn btn--primary" id="load-feature-btn">Load Feature</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+          <span class="tag tag--primary" style="cursor:pointer" onclick="document.getElementById('feature-index-input').value=42; document.getElementById('load-feature-btn').click();">#42 Bridge</span>
+          <span class="tag tag--secondary" style="cursor:pointer" onclick="document.getElementById('feature-index-input').value=137; document.getElementById('load-feature-btn').click();">#137 Neural Net</span>
+          <span class="tag tag--accent" style="cursor:pointer" onclick="document.getElementById('feature-index-input').value=256; document.getElementById('load-feature-btn').click();">#256 Politics</span>
+        </div>
+      </div>
+
+      <div id="feature-detail-container" class="reveal">
+        <div class="loading-overlay"><div class="spinner"></div>Loading feature…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Scaling Laws ====== -->
+  <section id="scaling">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-header__label">📈 Section 1.3</div>
+        <h2 class="section-header__title">Scaling Laws</h2>
+        <p class="section-header__desc">
+          SAE training loss follows a power law with compute. The optimal feature count
+          and training steps also scale predictably.
+        </p>
+      </div>
+
+      <div class="charts-grid">
+        <div class="card chart-card reveal reveal-delay-1">
+          <div class="chart-card__title">Loss vs Compute</div>
+          <div class="chart-card__subtitle">Power-law decrease in training loss with FLOPs</div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-loss"></canvas>
+          </div>
+        </div>
+        <div class="card chart-card reveal reveal-delay-2">
+          <div class="chart-card__title">Variance Explained vs Compute</div>
+          <div class="chart-card__subtitle">Reconstruction quality improves with scale</div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-variance"></canvas>
+          </div>
+        </div>
+        <div class="card chart-card reveal reveal-delay-3">
+          <div class="chart-card__title">L0 Sparsity vs Compute</div>
+          <div class="chart-card__subtitle">Active features per token across configurations</div>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-l0"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Steering Playground ====== -->
+  <section id="steering">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-header__label">🎛️ Section 2.1</div>
+        <h2 class="section-header__title">Steering Playground</h2>
+        <p class="section-header__desc">
+          Causally intervene by adding a feature direction to the residual stream.
+          See how amplifying or suppressing a feature changes generation.
+        </p>
+      </div>
+
+      <div class="steering-layout reveal">
+        <div class="card">
+          <h4 style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span class="tag tag--secondary">Controls</span>
+            Configure Intervention
+          </h4>
+          <div class="steering-form">
+            <div class="input-group">
+              <label class="input-group__label" for="steering-prompt-input">Prompt</label>
+              <input class="input-group__field" type="text" id="steering-prompt-input"
+                     placeholder="Enter a text prompt…" />
+            </div>
+            <div class="input-group">
+              <label class="input-group__label" for="steering-feature-select">Feature</label>
+              <select class="input-group__field" id="steering-feature-select">
+                <option value="42">Feature #42 — Golden Gate Bridge</option>
+                <option value="137">Feature #137 — Neural Networks</option>
+                <option value="256">Feature #256 — Politics / Legislation</option>
+              </select>
+            </div>
+            <div class="slider-group">
+              <div class="slider-group__header">
+                <span class="slider-group__label">Steering Coefficient</span>
+                <span class="slider-group__value" id="steering-coeff-value">30</span>
+              </div>
+              <input type="range" id="steering-coeff-slider" min="-60" max="60" value="30" step="5" />
+              <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-dim);">
+                <span>−60 (suppress)</span>
+                <span>0</span>
+                <span>+60 (amplify)</span>
+              </div>
+            </div>
+            <button class="btn btn--primary" id="steering-run-btn" style="align-self: flex-start;">
+              ⚡ Run Steering
+            </button>
+          </div>
+        </div>
+
+        <div class="steering-output">
+          <div class="output-card">
+            <div class="output-card__label output-card__label--baseline">
+              ○ Baseline Output
+            </div>
+            <div class="output-card__text" id="steering-baseline-output">—</div>
+          </div>
+          <div class="output-card" style="border-color: rgba(0, 212, 255, 0.15);">
+            <div class="output-card__label output-card__label--steered">
+              ⚡ Steered Output
+            </div>
+            <div class="output-card__text" id="steering-steered-output">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Training Monitor ====== -->
+  <section id="training">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-header__label">📉 Monitor</div>
+        <h2 class="section-header__title">Training Monitor</h2>
+        <p class="section-header__desc">
+          Visualize training progress: loss convergence, sparsity (L0), variance explained,
+          and dead feature analysis.
+        </p>
+      </div>
+
+      <div class="training-grid reveal">
+        <div class="card">
+          <h4 style="margin-bottom: 1rem;">Training Curves</h4>
+          <div class="chart-canvas-wrap" style="height: 320px;">
+            <canvas id="chart-training"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-bottom: 1.25rem; text-align: center;">Dead Features</h4>
+          <div class="gauge-container">
+            <div class="gauge">
+              <svg class="gauge__svg" width="180" height="180" viewBox="0 0 180 180">
+                <defs>
+                  <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00d4ff" />
+                    <stop offset="100%" stop-color="#7c3aed" />
+                  </linearGradient>
+                </defs>
+                <circle class="gauge__bg" cx="90" cy="90" r="70" />
+                <circle class="gauge__fill gauge__fill--primary" cx="90" cy="90" r="70"
+                        stroke-dasharray="439.82" stroke-dashoffset="439.82" />
+              </svg>
+              <div class="gauge__center">
+                <div class="gauge__value">—</div>
+                <div class="gauge__label">Dead Features</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="training-metrics">
+            <div class="stat-card">
+              <div class="stat-card__value stat-card__value--primary" id="metric-final-loss">—</div>
+              <div class="stat-card__label">Final Loss</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card__value stat-card__value--success" id="metric-final-var">—</div>
+              <div class="stat-card__label">Var. Explained</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card__value stat-card__value--secondary" id="metric-final-l0">—</div>
+              <div class="stat-card__label">L0 (Active)</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card__value stat-card__value--accent" id="metric-dead-count">—</div>
+              <div class="stat-card__label">Dead Count</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Paper Reference ====== -->
+  <section id="paper">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-header__label">📄 Reference</div>
+        <h2 class="section-header__title">Paper ↔ Implementation</h2>
+        <p class="section-header__desc">
+          How each section of the paper maps to modules in this codebase.
+        </p>
+      </div>
+
+      <div class="paper-grid">
+        <div class="card reveal">
+          <h4 style="margin-bottom: 1rem;">Implementation Mapping</h4>
+          <table class="mapping-table">
+            <thead>
+              <tr>
+                <th>Paper Section</th>
+                <th>Module</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>§1.1 Sparse Autoencoders</td>
+                <td><span class="code-ref">sae.py</span></td>
+              </tr>
+              <tr>
+                <td>§1.2 SAE Experiments</td>
+                <td><span class="code-ref">train.py</span> + <span class="code-ref">activation_buffer.py</span></td>
+              </tr>
+              <tr>
+                <td>§1.3 Scaling Laws</td>
+                <td><span class="code-ref">scaling_laws.py</span></td>
+              </tr>
+              <tr>
+                <td>§2.1 Interpretability</td>
+                <td><span class="code-ref">analysis.py</span></td>
+              </tr>
+              <tr>
+                <td>§2.1 Steering</td>
+                <td><span class="code-ref">steering.py</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card reveal">
+          <h4 style="margin-bottom: 1rem;">Key Metrics</h4>
+          <table class="mapping-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Paper Target</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>L0 (active features / token)</td>
+                <td><span class="tag tag--success">< 300</span></td>
+              </tr>
+              <tr>
+                <td>Variance Explained</td>
+                <td><span class="tag tag--primary">≥ 65%</span></td>
+              </tr>
+              <tr>
+                <td>Dead Features (1M)</td>
+                <td><span class="tag tag--warning">~2%</span></td>
+              </tr>
+              <tr>
+                <td>Dead Features (4M)</td>
+                <td><span class="tag tag--warning">~35%</span></td>
+              </tr>
+              <tr>
+                <td>Dead Features (34M)</td>
+                <td><span class="tag tag--accent">~65%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card reveal" style="grid-column: 1 / -1;">
+          <h4 style="margin-bottom: 1rem;">Citation</h4>
+          <div class="citation-box">
+            <pre>@article{templeton2024scaling,
+  title={Scaling Monosemanticity: Extracting Interpretable
+         Features from Claude 3 Sonnet},
+  author={Templeton, Adly and Conerly, Tom and Marcus, Jonathan
+          and Lindsey, Jack and Bricken, Trenton and Chen, Brian
+          and Pearce, Adam and Citro, Craig and ...},
+  journal={arXiv preprint arXiv:2605.29358},
+  year={2024}
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== Footer ====== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="divider" style="margin-bottom: 2rem;"></div>
+      <p class="footer__text">
+        Scaling Monosemanticity — Open-source SAE implementation for mechanistic interpretability
+      </p>
+      <ul class="footer__links">
+        <li><a href="https://arxiv.org/abs/2605.29358" target="_blank" rel="noopener">arXiv Paper</a></li>
+        <li><a href="https://github.com/Shahip2016/Scaling-Monosemanticity-mech-interp-" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/" target="_blank" rel="noopener">Anthropic Post</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/demo_data.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
