@@ -47,6 +47,8 @@ def train_sae(
     activations: torch.Tensor,
     config: TrainConfig,
     resume_path: str | None = None,
+    progress_callback = None,
+    stop_event = None,
 ) -> tuple[SparseAutoencoder, list[dict]]:
     """Train an SAE on pre-collected activations for one epoch over the data."""
     set_seed(config.seed)
@@ -71,6 +73,10 @@ def train_sae(
     start = time.time()
 
     for step in range(1, config.n_steps + 1):
+        if stop_event is not None and stop_event.is_set():
+            print(f"Training stopped by user at step {step}")
+            break
+
         try:
             batch = next(data_iter)[0]
         except StopIteration:
@@ -100,6 +106,8 @@ def train_sae(
                 f"mse {record['mse']:.4f} | l0 {record['l0']:.1f} | "
                 f"var {record['variance_explained']:.3f}"
             )
+            if progress_callback is not None:
+                progress_callback(step, record, None)
 
         if step % config.save_every == 0:
             sae.save(str(output_dir / f"sae_step_{step}.pt"))
@@ -107,17 +115,26 @@ def train_sae(
     final_path = output_dir / "sae_final.pt"
     sae.save(str(final_path))
 
-    dead_mask = sae.get_dead_features_mask(activations)
-    dead_frac = dead_mask.float().mean().item()
+    try:
+        dead_mask = sae.get_dead_features_mask(activations)
+        dead_frac = dead_mask.float().mean().item()
+        dead_count = int(dead_mask.sum().item())
+    except Exception as e:
+        print(f"Could not compute dead features: {e}")
+        dead_frac = 0.0
+        dead_count = 0
 
     summary = {
         "config": asdict(config),
         "final_loss": history[-1] if history else {},
         "dead_feature_fraction": dead_frac,
-        "n_dead_features": int(dead_mask.sum().item()),
+        "n_dead_features": dead_count,
         "checkpoint": str(final_path),
     }
     with open(output_dir / "train_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
+
+    if progress_callback is not None:
+        progress_callback(step, history[-1] if history else {}, summary)
 
     return sae, history

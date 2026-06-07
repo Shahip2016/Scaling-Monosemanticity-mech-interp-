@@ -305,12 +305,94 @@
   <section id="training">
     <div class="container">
       <div class="section-header reveal">
-        <div class="section-header__label">📉 Monitor</div>
-        <h2 class="section-header__title">Training Monitor</h2>
+        <div class="section-header__label">⚙️ Train & Monitor</div>
+        <h2 class="section-header__title">SAE Training & Monitor</h2>
         <p class="section-header__desc">
-          Visualize training progress: loss convergence, sparsity (L0), variance explained,
-          and dead feature analysis.
+          Configure hyperparameters, launch background training runs, view scrolling console logs,
+          and monitor metrics in real time.
         </p>
+      </div>
+
+      <!-- ====== Training Control Panel ====== -->
+      <div class="card reveal" style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span class="tag tag--primary">Control Panel</span>
+          SAE Hyperparameters & Launch
+        </h3>
+        
+        <div class="training-controls-layout">
+          <!-- Hyperparams inputs grid -->
+          <div class="hyperparams-grid">
+            <div class="input-group">
+              <label class="input-group__label" for="train-features-preset">Feature Size Preset</label>
+              <select class="input-group__field" id="train-features-preset">
+                <option value="4096">Small (4,096 features)</option>
+                <option value="16384" selected>Medium (16,384 features)</option>
+                <option value="65536">Large (65,536 features)</option>
+                <option value="custom">Custom...</option>
+              </select>
+            </div>
+            <div class="input-group" id="train-custom-features-group" style="display: none;">
+              <label class="input-group__label" for="train-features-custom">Custom Feature Count</label>
+              <input class="input-group__field" type="number" id="train-features-custom" value="4096" min="1" />
+            </div>
+            <div class="input-group">
+              <label class="input-group__label" for="train-l1">L1 Coefficient</label>
+              <input class="input-group__field" type="number" id="train-l1" value="5.0" step="0.5" min="0" />
+            </div>
+            <div class="input-group">
+              <label class="input-group__label" for="train-lr">Learning Rate</label>
+              <input class="input-group__field" type="number" id="train-lr" value="0.0003" step="0.0001" min="0" />
+            </div>
+            <div class="input-group">
+              <label class="input-group__label" for="train-batch-size">Batch Size</label>
+              <input class="input-group__field" type="number" id="train-batch-size" value="4096" step="512" min="1" />
+            </div>
+            <div class="input-group">
+              <label class="input-group__label" for="train-steps">Steps</label>
+              <input class="input-group__field" type="number" id="train-steps" value="1000" step="100" min="1" />
+            </div>
+            <div class="input-group">
+              <label class="input-group__label" for="train-device">Device</label>
+              <select class="input-group__field" id="train-device">
+                <option value="auto">Auto (CUDA if available)</option>
+                <option value="cuda">CUDA (GPU)</option>
+                <option value="cpu">CPU</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Buttons and Status -->
+          <div class="training-action-row">
+            <div class="training-buttons">
+              <button class="btn btn--primary" id="btn-start-train">🚀 Start Training</button>
+              <button class="btn btn--secondary" id="btn-stop-train" style="background-color: var(--danger); color: white; border: none;" disabled>🛑 Stop Training</button>
+            </div>
+            <div class="training-status-badge">
+              Status: <span id="train-status-text" class="tag tag--secondary" style="font-size: 0.8rem;">Idle</span>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-bar-container" style="display: none;" id="train-progress-container">
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.25rem;">
+              <span id="train-progress-text">Progress: 0% (0 / 0 steps)</span>
+              <span id="train-time-text">Elapsed: 0.0s</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-bar-fill" id="train-progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Console Terminal Output -->
+          <div class="terminal-console-wrap">
+            <div class="terminal-console-header">
+              <span>Console Logs</span>
+              <button id="btn-clear-logs" class="btn btn--secondary btn--sm" style="padding: 0.2rem 0.6rem; font-size: 0.7rem;">Clear</button>
+            </div>
+            <pre class="terminal-console" id="train-terminal-logs">Terminal ready. Configure hyperparameters and click "Start Training".</pre>
+          </div>
+        </div>
       </div>
 
       <div class="training-grid reveal">

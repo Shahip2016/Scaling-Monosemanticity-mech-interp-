@@ -472,139 +472,342 @@
   // 7. Training Monitor
   // ==========================================
 
+  let trainingChart = null;
+  let trainingPollInterval = null;
+
   function initTrainingMonitor() {
     if (typeof Chart === "undefined") return;
 
-    const data = window.DEMO_DATA?.trainingHistory;
-    if (!data) return;
+    const startBtn = $("#btn-start-train");
+    const stopBtn = $("#btn-stop-train");
+    const clearLogsBtn = $("#btn-clear-logs");
+    const terminalLogs = $("#train-terminal-logs");
+    const statusText = $("#train-status-text");
+    const progressContainer = $("#train-progress-container");
+    const progressFill = $("#train-progress-fill");
+    const progressText = $("#train-progress-text");
+    const timeText = $("#train-time-text");
+    
+    const presetSelect = $("#train-features-preset");
+    const customGroup = $("#train-custom-features-group");
+    const customFeaturesInput = $("#train-features-custom");
+    const l1Input = $("#train-l1");
+    const lrInput = $("#train-lr");
+    const batchSizeInput = $("#train-batch-size");
+    const stepsInput = $("#train-steps");
+    const deviceSelect = $("#train-device");
 
-    const history = data.history;
-    const summary = data.summary;
-
-    // --- Training Curves Chart ---
-    const ctx = document.getElementById("chart-training")?.getContext("2d");
-    if (ctx) {
-      new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: history.map((h) => h.step),
-          datasets: [
-            {
-              label: "Total Loss",
-              data: history.map((h) => h.loss),
-              borderColor: "#00d4ff",
-              backgroundColor: "rgba(0, 212, 255, 0.1)",
-              fill: true,
-              borderWidth: 2,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-              tension: 0.4,
-            },
-            {
-              label: "MSE",
-              data: history.map((h) => h.mse),
-              borderColor: "#7c3aed",
-              backgroundColor: "rgba(124, 58, 237, 0.05)",
-              fill: true,
-              borderWidth: 2,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-              tension: 0.4,
-            },
-            {
-              label: "Var. Explained",
-              data: history.map((h) => h.variance_explained),
-              borderColor: "#34d399",
-              borderWidth: 2,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-              tension: 0.4,
-              yAxisID: "y1",
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          animation: { duration: 2000, easing: "easeOutQuart" },
-          interaction: { mode: "index", intersect: false },
-          plugins: {
-            legend: {
-              labels: {
-                color: "#94a3b8",
-                font: { family: "'Inter', sans-serif", size: 11 },
-                boxWidth: 10,
-                boxHeight: 3,
-                usePointStyle: false,
-              },
-            },
-            tooltip: {
-              backgroundColor: "rgba(10, 14, 39, 0.95)",
-              titleColor: "#e2e8f0",
-              bodyColor: "#94a3b8",
-              borderColor: "rgba(255,255,255,0.1)",
-              borderWidth: 1,
-              cornerRadius: 8,
-              padding: 12,
-            },
-          },
-          scales: {
-            x: {
-              grid: { color: "rgba(255,255,255,0.04)" },
-              ticks: { color: "#64748b", font: { size: 10 }, maxTicksLimit: 10 },
-              title: { display: true, text: "Training Step", color: "#64748b", font: { size: 11 } },
-            },
-            y: {
-              grid: { color: "rgba(255,255,255,0.04)" },
-              ticks: { color: "#64748b", font: { size: 10 } },
-              title: { display: true, text: "Loss", color: "#64748b", font: { size: 11 } },
-              position: "left",
-            },
-            y1: {
-              grid: { drawOnChartArea: false },
-              ticks: { color: "#34d399", font: { size: 10 } },
-              title: { display: true, text: "Var. Explained", color: "#34d399", font: { size: 11 } },
-              position: "right",
-              min: 0,
-              max: 1,
-            },
-          },
-        },
+    // Show/hide custom features field
+    if (presetSelect && customGroup) {
+      presetSelect.addEventListener("change", () => {
+        if (presetSelect.value === "custom") {
+          customGroup.style.display = "block";
+        } else {
+          customGroup.style.display = "none";
+        }
       });
     }
 
-    // --- Dead Features Gauge ---
-    const gaugeEl = $(".gauge__fill--primary");
-    if (gaugeEl && summary) {
-      const circumference = 2 * Math.PI * 70; // radius=70
-      const pct = summary.dead_feature_fraction;
-      const offset = circumference - pct * circumference;
-      gaugeEl.style.strokeDasharray = circumference;
-      // Start fully hidden, animate to target
-      gaugeEl.style.strokeDashoffset = circumference;
-      setTimeout(() => {
+    if (clearLogsBtn && terminalLogs) {
+      clearLogsBtn.addEventListener("click", () => {
+        terminalLogs.textContent = "";
+      });
+    }
+
+    // Chart initialization
+    function updateTrainingChart(history) {
+      const ctx = document.getElementById("chart-training")?.getContext("2d");
+      if (!ctx) return;
+
+      const steps = history.map((h) => h.step);
+      const loss = history.map((h) => h.loss);
+      const mse = history.map((h) => h.mse);
+      const varExplained = history.map((h) => h.variance_explained);
+
+      if (trainingChart) {
+        trainingChart.data.labels = steps;
+        trainingChart.data.datasets[0].data = loss;
+        trainingChart.data.datasets[1].data = mse;
+        trainingChart.data.datasets[2].data = varExplained;
+        trainingChart.update();
+      } else {
+        trainingChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: steps,
+            datasets: [
+              {
+                label: "Total Loss",
+                data: loss,
+                borderColor: "#00d4ff",
+                backgroundColor: "rgba(0, 212, 255, 0.1)",
+                fill: true,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.4,
+              },
+              {
+                label: "MSE",
+                data: mse,
+                borderColor: "#7c3aed",
+                backgroundColor: "rgba(124, 58, 237, 0.05)",
+                fill: true,
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.4,
+              },
+              {
+                label: "Var. Explained",
+                data: varExplained,
+                borderColor: "#34d399",
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                tension: 0.4,
+                yAxisID: "y1",
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 0 },
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+              legend: {
+                labels: {
+                  color: "#94a3b8",
+                  font: { family: "'Inter', sans-serif", size: 11 },
+                  boxWidth: 10,
+                  boxHeight: 3,
+                },
+              },
+              tooltip: {
+                backgroundColor: "rgba(10, 14, 39, 0.95)",
+                titleColor: "#e2e8f0",
+                bodyColor: "#94a3b8",
+                borderColor: "rgba(255,255,255,0.1)",
+                borderWidth: 1,
+                cornerRadius: 8,
+                padding: 12,
+              },
+            },
+            scales: {
+              x: {
+                grid: { color: "rgba(255,255,255,0.04)" },
+                ticks: { color: "#64748b", font: { size: 10 }, maxTicksLimit: 10 },
+                title: { display: true, text: "Training Step", color: "#64748b", font: { size: 11 } },
+              },
+              y: {
+                grid: { color: "rgba(255,255,255,0.04)" },
+                ticks: { color: "#64748b", font: { size: 10 } },
+                title: { display: true, text: "Loss", color: "#64748b", font: { size: 11 } },
+                position: "left",
+              },
+              y1: {
+                grid: { drawOnChartArea: false },
+                ticks: { color: "#34d399", font: { size: 10 } },
+                title: { display: true, text: "Var. Explained", color: "#34d399", font: { size: 11 } },
+                position: "right",
+                min: 0,
+                max: 1,
+              },
+            },
+          },
+        });
+      }
+    }
+
+    // Load initial demo/historical data if available
+    const initialData = window.DEMO_DATA?.trainingHistory;
+    if (initialData) {
+      updateTrainingChart(initialData.history);
+      updateGauge(initialData.summary.dead_feature_fraction);
+      updateMetrics(initialData.summary);
+    }
+
+    function updateGauge(pct) {
+      const gaugeEl = $(".gauge__fill--primary");
+      if (gaugeEl) {
+        const circumference = 2 * Math.PI * 70; // radius=70
+        const offset = circumference - pct * circumference;
+        gaugeEl.style.strokeDasharray = circumference;
         gaugeEl.style.strokeDashoffset = offset;
-      }, 500);
+      }
 
       const valueEl = $(".gauge__value");
       if (valueEl) valueEl.textContent = (pct * 100).toFixed(1) + "%";
     }
 
-    // --- Summary Metrics ---
-    const metricEls = {
-      "metric-final-loss": summary?.final_loss,
-      "metric-final-var": summary?.final_variance_explained,
-      "metric-final-l0": summary?.final_l0,
-      "metric-dead-count": summary?.n_dead_features,
-    };
-    Object.entries(metricEls).forEach(([id, value]) => {
-      const el = document.getElementById(id);
-      if (el && value !== undefined) {
-        el.textContent = typeof value === "number" && value < 10
-          ? value.toFixed(3)
-          : formatNumber(value, 1);
+    function updateMetrics(summary) {
+      const finalLossEl = document.getElementById("metric-final-loss");
+      const finalVarEl = document.getElementById("metric-final-var");
+      const finalL0El = document.getElementById("metric-final-l0");
+      const deadCountEl = document.getElementById("metric-dead-count");
+
+      const finalLoss = summary?.final_loss;
+      if (finalLossEl && finalLoss) {
+        finalLossEl.textContent = typeof finalLoss.loss === "number" ? finalLoss.loss.toFixed(3) : formatNumber(finalLoss, 3);
       }
-    });
+      if (finalVarEl && finalLoss) {
+        finalVarEl.textContent = typeof finalLoss.variance_explained === "number" ? finalLoss.variance_explained.toFixed(3) : "—";
+      }
+      if (finalL0El && finalLoss) {
+        finalL0El.textContent = typeof finalLoss.l0 === "number" ? finalLoss.l0.toFixed(1) : "—";
+      }
+      if (deadCountEl && summary) {
+        deadCountEl.textContent = typeof summary.n_dead_features === "number" ? summary.n_dead_features : "—";
+      }
+    }
+
+    // Polling and status update
+    function pollStatus() {
+      fetch("/api/train/status")
+        .then((r) => r.json())
+        .then((status) => {
+          // Update status badge
+          if (statusText) {
+            statusText.textContent = status.status.toUpperCase();
+            statusText.className = "tag " + (
+              status.status === "training" ? "tag--primary" :
+              status.status === "completed" ? "tag--success" :
+              status.status === "stopped" ? "tag--warning" :
+              status.status === "failed" ? "tag--accent" : "tag--secondary"
+            );
+          }
+
+          // Update elapsed time
+          if (timeText) {
+            timeText.textContent = `Elapsed: ${status.elapsed_s.toFixed(1)}s`;
+          }
+
+          // Update terminal logs
+          if (terminalLogs && status.logs.length > 0) {
+            terminalLogs.textContent = status.logs.join("\n");
+            terminalLogs.scrollTop = terminalLogs.scrollHeight;
+          }
+
+          // Update progress bar
+          if (status.status === "training") {
+            if (progressContainer) progressContainer.style.display = "block";
+            const percent = status.total_steps > 0 ? (status.progress / status.total_steps) * 100 : 0;
+            if (progressFill) progressFill.style.width = `${percent}%`;
+            if (progressText) progressText.textContent = `Progress: ${percent.toFixed(1)}% (${status.progress} / ${status.total_steps} steps)`;
+          }
+
+          // Update chart
+          if (status.history.length > 0) {
+            updateTrainingChart(status.history);
+          }
+
+          // Handle state transitions
+          if (status.status !== "training") {
+            clearInterval(trainingPollInterval);
+            trainingPollInterval = null;
+            
+            if (startBtn) startBtn.disabled = false;
+            if (stopBtn) stopBtn.disabled = true;
+
+            // Fetch training summary upon completion
+            if (status.status === "completed") {
+              fetch("/api/training-summary")
+                .then((r) => r.json())
+                .then((summary) => {
+                  updateGauge(summary.dead_feature_fraction);
+                  updateMetrics(summary);
+                  // Reload feature explorer list & default feature
+                  const featureExplorerInput = $("#feature-index-input");
+                  if (featureExplorerInput) {
+                    featureExplorerInput.value = 0;
+                    $("#load-feature-btn")?.click();
+                  }
+                })
+                .catch(() => {});
+            }
+          }
+        })
+        .catch(() => {
+          clearInterval(trainingPollInterval);
+          trainingPollInterval = null;
+          if (startBtn) startBtn.disabled = false;
+          if (stopBtn) stopBtn.disabled = true;
+        });
+    }
+
+    function startTraining() {
+      const n_features = presetSelect.value === "custom" 
+        ? parseInt(customFeaturesInput.value, 10) 
+        : parseInt(presetSelect.value, 10);
+      const l1_coefficient = parseFloat(l1Input.value);
+      const learning_rate = parseFloat(lrInput.value);
+      const batch_size = parseInt(batchSizeInput.value, 10);
+      const n_steps = parseInt(stepsInput.value, 10);
+      const device = deviceSelect.value;
+
+      if (terminalLogs) terminalLogs.textContent = "Requesting training start...\n";
+      if (startBtn) startBtn.disabled = true;
+      if (stopBtn) stopBtn.disabled = false;
+      if (progressContainer) progressContainer.style.display = "block";
+      if (progressFill) progressFill.style.width = "0%";
+      if (progressText) progressText.textContent = "Starting...";
+
+      fetch("/api/train/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          n_features,
+          l1_coefficient,
+          learning_rate,
+          batch_size,
+          n_steps,
+          device,
+          log_every: 10,
+          save_every: n_steps
+        })
+      })
+        .then((r) => r.ok ? r.json() : r.json().then(e => Promise.reject(e)))
+        .then(() => {
+          if (terminalLogs) terminalLogs.textContent += "Training thread spawned. Polling progress...\n";
+          // Start polling
+          if (trainingPollInterval) clearInterval(trainingPollInterval);
+          trainingPollInterval = setInterval(pollStatus, 500);
+        })
+        .catch((err) => {
+          if (terminalLogs) terminalLogs.textContent += `Failed to start training: ${err?.error || err || "unknown error"}\n`;
+          if (startBtn) startBtn.disabled = false;
+          if (stopBtn) stopBtn.disabled = true;
+        });
+    }
+
+    function stopTraining() {
+      if (terminalLogs) terminalLogs.textContent += "Requesting training stop...\n";
+      fetch("/api/train/stop", { method: "POST" })
+        .then((r) => r.json())
+        .then(() => {
+          if (terminalLogs) terminalLogs.textContent += "Training stop request sent.\n";
+        })
+        .catch((err) => {
+          if (terminalLogs) terminalLogs.textContent += `Failed to stop training: ${err}\n`;
+        });
+    }
+
+    if (startBtn) startBtn.addEventListener("click", startTraining);
+    if (stopBtn) stopBtn.addEventListener("click", stopTraining);
+
+    // Initial status check
+    fetch("/api/train/status")
+      .then((r) => r.json())
+      .then((status) => {
+        if (status.status === "training") {
+          if (startBtn) startBtn.disabled = true;
+          if (stopBtn) stopBtn.disabled = false;
+          if (progressContainer) progressContainer.style.display = "block";
+          trainingPollInterval = setInterval(pollStatus, 500);
+        }
+      })
+      .catch(() => {});
   }
 
   // ==========================================
